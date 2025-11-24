@@ -23,11 +23,13 @@ public class ProductHistory extends PanacheEntityBase {
     @Column(name = "new_name", length = 100)
     public String newName;
 
-    @Column(name = "old_category", length = 50)
-    public String oldCategory;
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "old_category_id", nullable = true)
+    public Category oldCategory;
 
-    @Column(name = "new_category", length = 50)
-    public String newCategory;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "new_category_id", nullable = false)
+    public Category newCategory;
 
     @Column(name = "old_price", precision = 10, scale = 2)
     public BigDecimal oldPrice;
@@ -41,13 +43,47 @@ public class ProductHistory extends PanacheEntityBase {
     @Column(name = "new_quantity")
     public Integer newQuantity;
 
-    @Column(name = "changed_at", nullable = false)
-    public OffsetDateTime changedAt;
+    @Column(name = "product_created_at", nullable = false)
+    public OffsetDateTime productCreatedAt;
+
+    @Column(name = "product_updated_at", nullable = false)
+    public OffsetDateTime productUpdatedAt;
+
+    public static ProductHistory createFrom(Product oldProduct, Product newProduct, OffsetDateTime productCreatedAt) {
+        ProductHistory history = new ProductHistory();
+        history.product = newProduct;
+        history.oldName = oldProduct != null ? oldProduct.name : null;
+        history.oldCategory = oldProduct != null ? oldProduct.category : null;
+        history.oldPrice = oldProduct != null ? oldProduct.price : null;
+        history.oldQuantity = oldProduct != null ? oldProduct.quantity : null;
+
+        history.newName = newProduct.name;
+        history.newCategory = newProduct.category;
+        history.newPrice = newProduct.price;
+        history.newQuantity = newProduct.quantity;
+
+        if (productCreatedAt != null) {
+            history.productCreatedAt = productCreatedAt;
+            history.productUpdatedAt = OffsetDateTime.now();
+        } else {
+            OffsetDateTime now = OffsetDateTime.now();
+            history.productCreatedAt = now;
+            history.productUpdatedAt = now;
+        }
+        return history;
+    }
+
+    public static ProductHistory createFrom(Product newProduct) {
+        return createFrom(null, newProduct, null);
+    }
 
     @PrePersist
     public void prePersist() {
-        if (changedAt == null) {
-            changedAt = OffsetDateTime.now();
+        if (productUpdatedAt == null) {
+            productUpdatedAt = OffsetDateTime.now();
+        }
+        if (productCreatedAt == null) {
+            productCreatedAt = productUpdatedAt;
         }
     }
 }

@@ -1,5 +1,0 @@
-CREATE TABLE forbidden_words (
-    id BIGSERIAL PRIMARY KEY,
-    value VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);

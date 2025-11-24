@@ -1,0 +1,1 @@
+CREATE DATABASE ztp_products_test OWNER admin;
